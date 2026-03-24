@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Heart Disease Predictor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=3">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">❤️ Heart<span>Predict</span></div>
+  <div class="badge">ML Model Active</div>
+</div>
+
+<div class="page-title">
+  <h1>Heart Disease <span>Risk Predictor</span></h1>
+  <p>Data Science Project &nbsp;·&nbsp; Sufiyan Kazi</p>
+</div>
+
+<div class="main">
+
+  <div class="form-card">
+    <div class="form-top">
+      <h3>🩺 Patient Medical Details</h3>
+      <p>Fill all fields for accurate prediction</p>
+    </div>
+    <div class="form-body">
+      <form action="/predict" method="POST">
+
+        <div class="sec-label">Personal Info</div>
+        <div class="grid2">
+          <div class="field">
+            <label>Age</label>
+            <input type="number" name="age" placeholder="e.g. 45" min="18" max="100" value="{{ age or '' }}" required>
+          </div>
+          <div class="field">
+            <label>Sex</label>
+            <select name="sex" required>
+              <option value="" disabled selected>Select...</option>
+              <option value="M" {% if sex=='M' %}selected{% endif %}>Male</option>
+              <option value="F" {% if sex=='F' %}selected{% endif %}>Female</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sec-label">Heart Parameters</div>
+        <div class="grid2">
+          <div class="field">
+            <label>Chest Pain Type</label>
+            <select name="chest_pain" required>
+              <option value="" disabled selected>Select...</option>
+              <option value="ATA" {% if chest_pain=='ATA' %}selected{% endif %}>ATA</option>
+              <option value="NAP" {% if chest_pain=='NAP' %}selected{% endif %}>NAP</option>
+              <option value="TA"  {% if chest_pain=='TA'  %}selected{% endif %}>TA</option>
+              <option value="ASY" {% if chest_pain=='ASY' %}selected{% endif %}>ASY</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Resting ECG</label>
+            <select name="resting_ecg" required>
+              <option value="" disabled selected>Select...</option>
+              <option value="Normal" {% if resting_ecg=='Normal' %}selected{% endif %}>Normal</option>
+              <option value="ST"     {% if resting_ecg=='ST'     %}selected{% endif %}>ST</option>
+              <option value="LVH"    {% if resting_ecg=='LVH'    %}selected{% endif %}>LVH</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Exercise Angina</label>
+            <select name="exercise_angina" required>
+              <option value="" disabled selected>Select...</option>
+              <option value="Y" {% if exercise_angina=='Y' %}selected{% endif %}>Yes</option>
+              <option value="N" {% if exercise_angina=='N' %}selected{% endif %}>No</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>ST Slope</label>
+            <select name="st_slope" required>
+              <option value="" disabled selected>Select...</option>
+              <option value="Up"   {% if st_slope=='Up'   %}selected{% endif %}>Up</option>
+              <option value="Flat" {% if st_slope=='Flat' %}selected{% endif %}>Flat</option>
+              <option value="Down" {% if st_slope=='Down' %}selected{% endif %}>Down</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sec-label">Measurements</div>
+        <div class="grid2">
+          <div class="field">
+            <label>Resting BP</label>
+            <input type="number" name="resting_bp" placeholder="e.g. 120" value="{{ resting_bp or '' }}" required>
+          </div>
+          <div class="field">
+            <label>Cholesterol</label>
+            <input type="number" name="cholesterol" placeholder="e.g. 200" value="{{ cholesterol or '' }}" required>
+          </div>
+          <div class="field">
+            <label>Max Heart Rate</label>
+            <input type="number" name="max_hr" placeholder="e.g. 150" value="{{ max_hr or '' }}" required>
+          </div>
+          <div class="field">
+            <label>Fasting BS &gt;120</label>
+            <select name="fasting_bs" required>
+              <option value="" disabled selected>Select...</option>
+              <option value="0" {% if fasting_bs==0 %}selected{% endif %}>No (0)</option>
+              <option value="1" {% if fasting_bs==1 %}selected{% endif %}>Yes (1)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Oldpeak</label>
+            <input type="number" name="oldpeak" placeholder="e.g. 1.0" step="0.1" value="{{ oldpeak or '' }}" required>
+          </div>
+        </div>
+
+        {% if error %}
+        <div class="error-box">⚠️ {{ error }}</div>
+        {% endif %}
+
+        <button type="submit" class="predict-btn">❤️ Analyze Heart Risk</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="right-card {% if result %}result-{{ result }}{% endif %}">
+    {% if result %}
+      <div class="result-top">
+        {% if result == 'high' %}
+          <div class="result-emoji">🚨</div>
+          <div class="result-title">High Risk Detected</div>
+          <div class="result-sub">Patient shows significant indicators. Medical consultation advised.</div>
+        {% else %}
+          <div class="result-emoji">💚</div>
+          <div class="result-title">Low Risk</div>
+          <div class="result-sub">No significant heart disease risk detected.</div>
+        {% endif %}
+      </div>
+      <div class="result-body">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-key">Age</div><div class="info-val">{{ age }} yrs</div></div>
+          <div class="info-item"><div class="info-key">Sex</div><div class="info-val">{{ 'Male' if sex=='M' else 'Female' }}</div></div>
+          <div class="info-item"><div class="info-key">Chest Pain</div><div class="info-val">{{ chest_pain }}</div></div>
+          <div class="info-item"><div class="info-key">Max HR</div><div class="info-val">{{ max_hr }} bpm</div></div>
+          <div class="info-item"><div class="info-key">Cholesterol</div><div class="info-val">{{ cholesterol }}</div></div>
+          <div class="info-item"><div class="info-key">Oldpeak</div><div class="info-val">{{ oldpeak }}</div></div>
+        </div>
+        <a href="/" class="reset-btn">🔄 New Analysis</a>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🫀</div>
+        <h4>Result Will Appear Here</h4>
+        <p>Fill patient details and click <strong>Analyze Heart Risk</strong></p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<footer class="footer">
+  Built by <span>Sufiyan Kazi</span> &nbsp;·&nbsp; &nbsp;·&nbsp; 2026
+</footer>
+
+</body>
+</html>
