@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import joblib
 import pandas as pd
+import os
 
 app = Flask(__name__)
 
@@ -28,9 +29,12 @@ def predict():
         st_slope        = request.form.get("st_slope")
 
         raw = {
-            'Age': age, 'RestingBP': resting_bp,
-            'Cholesterol': cholesterol, 'FastingBS': fasting_bs,
-            'MaxHR': max_hr, 'Oldpeak': oldpeak,
+            'Age': age,
+            'RestingBP': resting_bp,
+            'Cholesterol': cholesterol,
+            'FastingBS': fasting_bs,
+            'MaxHR': max_hr,
+            'Oldpeak': oldpeak,
             'Sex_' + sex: 1,
             'ChestPainType_' + chest_pain: 1,
             'RestingECG_' + resting_ecg: 1,
@@ -39,9 +43,12 @@ def predict():
         }
 
         df = pd.DataFrame([raw])
+
+        # ensure all expected columns exist
         for col in expected:
             if col not in df.columns:
                 df[col] = 0
+
         df = df[expected]
 
         scaled     = scaler.transform(df)
@@ -61,5 +68,8 @@ def predict():
         print(f"Error: {e}")
         return render_template("index.html", result=None, error=str(e))
 
+
+
 if __name__ == "__main__":
-    app.run(debug=False, port=5000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
