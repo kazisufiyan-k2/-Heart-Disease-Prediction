@@ -1,6 +1,8 @@
 # Heart Disease Prediction ❤️
 
 This project predicts the risk of heart disease using Machine Learning and provides a web-based interface built with Flask and custom HTML/CSS.
+## Live Demo
+https://heart-disease-prediction-1-skte.onrender.com
 
 ## Tech Stack
 
