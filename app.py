@@ -1,111 +1,65 @@
-import streamlit as st
-import pandas as pd
+from flask import Flask, render_template, request
 import joblib
+import pandas as pd
 
-# Page config
-st.set_page_config(page_title="Heart Disease Prediction", page_icon="❤️", layout="centered")
+app = Flask(__name__)
 
-# Custom CSS
-st.markdown("""
-<style>
+model    = joblib.load("knn_heart_model.pkl")
+scaler   = joblib.load("heart_scaler.pkl")
+expected = joblib.load("heart_columns.pkl")
 
-body {
-    background-color: #0e1117;
-}
+@app.route("/")
+def home():
+    return render_template("index.html", result=None)
 
-.main-title {
-    text-align:center;
-    font-size:40px;
-    color:#ff4b4b;
-    font-weight:bold;
-}
+@app.route("/predict", methods=["POST"])
+def predict():
+    try:
+        age             = int(request.form.get("age"))
+        sex             = request.form.get("sex")
+        chest_pain      = request.form.get("chest_pain")
+        resting_bp      = int(request.form.get("resting_bp"))
+        cholesterol     = int(request.form.get("cholesterol"))
+        fasting_bs      = int(request.form.get("fasting_bs"))
+        resting_ecg     = request.form.get("resting_ecg")
+        max_hr          = int(request.form.get("max_hr"))
+        exercise_angina = request.form.get("exercise_angina")
+        oldpeak         = float(request.form.get("oldpeak"))
+        st_slope        = request.form.get("st_slope")
 
-.subtitle{
-    text-align:center;
-    color:gray;
-    margin-bottom:30px;
-}
+        raw = {
+            'Age': age, 'RestingBP': resting_bp,
+            'Cholesterol': cholesterol, 'FastingBS': fasting_bs,
+            'MaxHR': max_hr, 'Oldpeak': oldpeak,
+            'Sex_' + sex: 1,
+            'ChestPainType_' + chest_pain: 1,
+            'RestingECG_' + resting_ecg: 1,
+            'ExerciseAngina_' + exercise_angina: 1,
+            'ST_Slope_' + st_slope: 1
+        }
 
-.stButton>button {
-    width:100%;
-    background-color:#ff4b4b;
-    color:white;
-    font-size:18px;
-    border-radius:10px;
-    height:50px;
-}
+        df = pd.DataFrame([raw])
+        for col in expected:
+            if col not in df.columns:
+                df[col] = 0
+        df = df[expected]
 
-.stButton>button:hover{
-    background-color:#ff2a2a;
-}
+        scaled     = scaler.transform(df)
+        prediction = model.predict(scaled)[0]
+        result     = "high" if prediction == 1 else "low"
 
-.result-box{
-    padding:20px;
-    border-radius:10px;
-    text-align:center;
-    font-size:20px;
-}
+        return render_template("index.html",
+            result=result,
+            age=age, sex=sex, chest_pain=chest_pain,
+            resting_bp=resting_bp, cholesterol=cholesterol,
+            fasting_bs=fasting_bs, resting_ecg=resting_ecg,
+            max_hr=max_hr, exercise_angina=exercise_angina,
+            oldpeak=oldpeak, st_slope=st_slope
+        )
 
-</style>
-""", unsafe_allow_html=True)
+    except Exception as e:
+        print(f"Error: {e}")
+        return render_template("index.html", result=None, error=str(e))
 
-# Load model files
-model = joblib.load("knn_heart_model.pkl")
-scaler = joblib.load("heart_scaler.pkl")
-expected_columns = joblib.load("heart_columns.pkl")
-
-# Title
-st.markdown('<p class="main-title">❤️ Heart Disease Prediction</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Enter medical details to check heart disease risk</p>', unsafe_allow_html=True)
-
-# Layout columns
-col1, col2 = st.columns(2)
-
-with col1:
-    age = st.slider("Age", 18, 100, 40)
-    sex = st.selectbox("Sex", ["M", "F"])
-    chest_pain = st.selectbox("Chest Pain Type", ["ATA", "NAP", "TA", "ASY"])
-    resting_bp = st.number_input("Resting Blood Pressure", 80, 200, 120)
-    cholesterol = st.number_input("Cholesterol", 100, 600, 200)
-
-with col2:
-    fasting_bs = st.selectbox("Fasting Blood Sugar >120", [0,1])
-    resting_ecg = st.selectbox("Resting ECG", ["Normal", "ST", "LVH"])
-    max_hr = st.slider("Max Heart Rate", 60, 220, 150)
-    exercise_angina = st.selectbox("Exercise Angina", ["Y","N"])
-    oldpeak = st.slider("Oldpeak", 0.0, 6.0, 1.0)
-    st_slope = st.selectbox("ST Slope", ["Up", "Flat", "Down"])
-
-# Prediction button
-if st.button("Predict Heart Risk"):
-
-    raw_input = {
-        'Age': age,
-        'RestingBP': resting_bp,
-        'Cholesterol': cholesterol,
-        'FastingBS': fasting_bs,
-        'MaxHR': max_hr,
-        'Oldpeak': oldpeak,
-        'Sex_' + sex: 1,
-        'ChestPainType_' + chest_pain: 1,
-        'RestingECG_' + resting_ecg: 1,
-        'ExerciseAngina_' + exercise_angina: 1,
-        'ST_Slope_' + st_slope: 1
-    }
-
-    input_df = pd.DataFrame([raw_input])
-
-    for col in expected_columns:
-        if col not in input_df.columns:
-            input_df[col] = 0
-
-    input_df = input_df[expected_columns]
-
-    scaled_input = scaler.transform(input_df)
-
-    prediction = model.predict(scaled_input)[0]
-
-    if prediction == 1:
-        st.error("⚠️ High Risk of Heart Disease")
-    else:
-        st.success("✅ Low Risk of Heart Disease")
+if __name__ == "__main__":
+    app.run(debug=False, port=5000)
