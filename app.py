@@ -43,14 +43,12 @@ def predict():
         }
 
         df = pd.DataFrame([raw])
-
         # ensure all expected columns exist
         for col in expected:
             if col not in df.columns:
                 df[col] = 0
 
         df = df[expected]
-
         scaled     = scaler.transform(df)
         prediction = model.predict(scaled)[0]
         result     = "high" if prediction == 1 else "low"
