@@ -1,5 +1,4 @@
-# Heart Disease Prediction ❤️
-
+# Heart Disease Prediction
 This project predicts the risk of heart disease using Machine Learning and provides a web-based interface built with Flask and custom HTML/CSS.
 ## Live Demo
 https://heart-disease-prediction-1-skte.onrender.com
@@ -31,21 +30,17 @@ https://heart-disease-prediction-1-skte.onrender.com
 * Separation of frontend and backend
 
 ## How to Run the Project
-
 1. Install dependencies
 
 ```
 pip install -r requirements.txt
 ```
-
 2. Run the Flask app
 
 ```
 python app.py
 ```
-
 3. Open in browser
-
 ```
 http://127.0.0.1:5000/
 ```
