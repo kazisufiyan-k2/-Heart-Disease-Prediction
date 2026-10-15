@@ -46,7 +46,6 @@ http://127.0.0.1:5000/
 ```
 
 ## Future Improvements
-
 * Add user authentication
 * Deploy on cloud (Render / AWS)
 * Improve UI with advanced styling
